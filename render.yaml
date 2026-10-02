@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: frostwave-api
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci
+    startCommand: npm run start:api
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FIREBASE_PROJECT_ID
+        value: eyespy-weather
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: ADMIN_EMAILS
+        value: rayangeorgevincent@gmail.com
+      - key: APP_BASE_URL
+        sync: false
+      - key: WEB_ORIGINS
+        sync: false

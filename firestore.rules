@@ -1,0 +1,67 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/settings/weather {
+      allow read, delete: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasAll([
+          "favoriteCities",
+          "homeLocation",
+          "temperatureUnit",
+          "windSpeedUnit",
+          "theme"
+        ])
+        && request.resource.data.keys().hasOnly([
+          "favoriteCities",
+          "homeLocation",
+          "temperatureUnit",
+          "windSpeedUnit",
+          "theme"
+        ])
+        && request.resource.data.favoriteCities is list
+        && request.resource.data.favoriteCities.size() <= 30
+        && request.resource.data.temperatureUnit in ["C", "F"]
+        && request.resource.data.windSpeedUnit in ["kph", "mph"]
+        && request.resource.data.theme in ["dark", "light"]
+        && (
+          request.resource.data.homeLocation == null
+          || (
+            request.resource.data.homeLocation is map
+            && request.resource.data.homeLocation.keys().hasAll([
+              "name",
+              "region",
+              "country",
+              "lat",
+              "lon"
+            ])
+            && request.resource.data.homeLocation.keys().hasOnly([
+              "name",
+              "region",
+              "country",
+              "lat",
+              "lon"
+            ])
+            && request.resource.data.homeLocation.name is string
+            && request.resource.data.homeLocation.name.size() > 0
+            && request.resource.data.homeLocation.name.size() <= 80
+            && request.resource.data.homeLocation.region is string
+            && request.resource.data.homeLocation.region.size() <= 100
+            && request.resource.data.homeLocation.country is string
+            && request.resource.data.homeLocation.country.size() <= 100
+            && request.resource.data.homeLocation.lat is number
+            && request.resource.data.homeLocation.lat >= -90
+            && request.resource.data.homeLocation.lat <= 90
+            && request.resource.data.homeLocation.lon is number
+            && request.resource.data.homeLocation.lon >= -180
+            && request.resource.data.homeLocation.lon <= 180
+          )
+        );
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
